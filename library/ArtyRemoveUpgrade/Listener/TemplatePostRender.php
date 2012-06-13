@@ -9,9 +9,6 @@ class ArtyRemoveUpgrade_Listener_TemplatePostRender
 			case 'user_upgrade_edit':
 				self::userUpgradeEdit($content, $containerData, $template);
 				break;
-			case 'account_upgrades2':
-				self::accountUpgrades($content, $containerData, $template);
-				break;
 		}
 	}
 	
@@ -50,20 +47,4 @@ class ArtyRemoveUpgrade_Listener_TemplatePostRender
 		$content = substr($content, 0, $pos) . $insert . substr($content, $pos);
 		return true;
 	}
-	
-	/**
-	 * Changes account_upgrades template output
-	 *
-	 * @return boolean True if template was changed, false if not
-	 */
-	public static function accountUpgrades(&$content, array &$containerData, XenForo_Template_Abstract $template)
-	{
-		$viewParams = $template->getParams();
-		if (!empty($viewParams['alternative']))
-		{
-			$content .= parent::responseView('XenForo_ViewPublic_Account_Upgrades', 'account_upgrades_alternative', $viewParams);
-		}
-		return false;
-	}
-	
 }
