@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon addon_id="ArtyRemoveUpgrade" title="Remove Upgrade" version_string="1.0.0" version_id="1" url="http://www.artodia.com/" install_callback_class="ArtyRemoveUpgrade_Installer" install_callback_method="install" uninstall_callback_class="ArtyRemoveUpgrade_Installer" uninstall_callback_method="uninstall">
+  <admin_navigation/>
+  <admin_permissions/>
+  <admin_style_properties/>
+  <admin_templates/>
+  <code_events/>
+  <code_event_listeners>
+    <listener event_id="load_class_controller" execute_order="10" callback_class="ArtyRemoveUpgrade_Listener_LoadClassController" callback_method="loadClassListener" active="1" description="Override controller classes"/>
+    <listener event_id="load_class_datawriter" execute_order="10" callback_class="ArtyRemoveUpgrade_Listener_LoadClassDataWriter" callback_method="loadClassListener" active="1" description="Override data writer classes"/>
+    <listener event_id="load_class_model" execute_order="10" callback_class="ArtyRemoveUpgrade_Listener_LoadClassModel" callback_method="loadClassListener" active="1" description="Override model classes"/>
+    <listener event_id="template_create" execute_order="10" callback_class="ArtyRemoveUpgrade_Listener_TemplateCreate" callback_method="templateCreate" active="1" description="Replaces account_upgrades template with account_upgrades_alternative"/>
+    <listener event_id="template_post_render" execute_order="10" callback_class="ArtyRemoveUpgrade_Listener_TemplatePostRender" callback_method="templatePostRender" active="1" description="Overrides user_upgrade_edit template"/>
+  </code_event_listeners>
+  <cron/>
+  <email_templates/>
+  <optiongroups/>
+  <permissions>
+    <permission_groups/>
+    <permissions/>
+    <interface_groups/>
+  </permissions>
+  <phrases>
+    <phrase title="account_upgrade_blocked_by" version_id="1" version_string="1.0.0"><![CDATA[This upgrade is not available while you are subscribed to:]]></phrase>
+    <phrase title="cancel_paypal_subscription" version_id="1" version_string="1.0.0"><![CDATA[Cancel PayPal Subscription]]></phrase>
+    <phrase title="can_unsubscribe" version_id="1" version_string="1.0.0"><![CDATA[Can unsubscribe]]></phrase>
+    <phrase title="remove_account_upgrade" version_id="1" version_string="1.0.0"><![CDATA[Remove Account Upgrade]]></phrase>
+    <phrase title="unavailable_upgrades" version_id="1" version_string="1.0.0"><![CDATA[Unavailable Upgrades]]></phrase>
+    <phrase title="you_cannot_remove_this_upgrade" version_id="1" version_string="1.0.0"><![CDATA[You cannot remove this upgrade.]]></phrase>
+    <phrase title="you_should_remove_paypal_subscription_before_removing_account_upgrade" version_id="1" version_string="1.0.0"><![CDATA[Important!!! Removing account upgrade does not automatically cancel your PayPal subscription. Click link below to cancel PayPal subscription before removing account upgrade.]]></phrase>
+    <phrase title="you_sure_you_want_to_remove_this_account_upgrade" version_id="1" version_string="1.0.0"><![CDATA[Are you sure you want to remove this account upgrade?]]></phrase>
+  </phrases>
+  <route_prefixes>
+    <route_type type="public">
+      <prefix original_prefix="account-upgrade" class="ArtyRemoveUpgrade_Route_Prefix_AccountUpgrade" build_link="data_only"/>
+    </route_type>
+  </route_prefixes>
+  <style_properties/>
+  <templates>
+    <template title="account_upgrades_alternative" version_id="1" version_string="1.0.0"><![CDATA[<xen:title>{xen:phrase account_upgrades}</xen:title>
+
+<xen:require css="account_upgrades.css" />
+
+<xen:if is="{$available}">
+	<div class="section">
+		<h3 class="subHeading">{xen:phrase available_upgrades}</h3>
+		<ul>
+		<xen:foreach loop="$available" value="$upgrade">
+			<li class="primaryContent">
+				<div class="upgrade">					
+					<form action="{$payPalUrl}" method="post" class="upgradeForm">
+						<div class="cost">{$upgrade.costPhrase}</div>
+						<xen:if is="{$upgrade.length_unit} AND {$upgrade.recurring}">
+								
+							<input type="hidden" name="cmd" value="_xclick-subscriptions" />
+							<input type="hidden" name="a3" value="{$upgrade.cost_amount}" />
+							<input type="hidden" name="p3" value="{$upgrade.length_amount}" />
+							<input type="hidden" name="t3" value="{$upgrade.lengthUnitPP}" />
+							<input type="hidden" name="src" value="1" />
+							<input type="hidden" name="sra" value="1" />
+							
+							<input type="submit" value="{xen:phrase subscribe}" class="button" />
+						<xen:else />
+							<input type="hidden" name="cmd" value="_xclick" />
+							<input type="hidden" name="amount" value="{$upgrade.cost_amount}" />
+							
+							<input type="submit" value="{xen:phrase purchase}" class="button" />
+						</xen:if>
+						
+						<input type="hidden" name="business" value="{$xenOptions.payPalPrimaryAccount}" />
+						<input type="hidden" name="currency_code" value="{$upgrade.currency}" />
+						<input type="hidden" name="item_name" value="{xen:phrase account_upgrade}: {$upgrade.title} ({$visitor.username})" />
+						<input type="hidden" name="quantity" value="1" />
+						<input type="hidden" name="no_note" value="1" />
+						<input type="hidden" name="no_shipping" value="1" />
+						<input type="hidden" name="custom" value="{$visitor.user_id},{$upgrade.user_upgrade_id},token,{$visitor.csrf_token_page}" />
+						
+						<input type="hidden" name="charset" value="utf-8" />
+						<input type="hidden" name="email" value="{$visitor.email}" />
+						
+						<input type="hidden" name="return" value="{$requestPaths.fullBasePath}{xen:link account/upgrade-purchase}" />
+						<input type="hidden" name="cancel_return" value="{$requestPaths.fullBasePath}{xen:link index}" />
+						<input type="hidden" name="notify_url" value="{$xenOptions.boardUrl}/payment_callback.php" />
+					</form>
+					
+					<div class="upgradeMain">
+						<h4 class="title">{$upgrade.title}</h4>
+						<xen:if is="{$upgrade.description}">
+							<div class="description">{xen:string nl2br, $upgrade.description}</div>
+						</xen:if>
+					</div>
+				</div>
+			</li>
+		</xen:foreach>
+		</ul>
+	</div>
+</xen:if>
+
+<xen:if is="{$purchased}">
+	<div class="section">
+		<h3 class="subHeading">{xen:phrase purchased_upgrades}</h3>
+		<ul>
+		<xen:foreach loop="$purchased" value="$upgrade">
+			<li class="primaryContent">
+				<div class="upgrade">					
+					<div class="upgradeForm">
+						<xen:if is="{$upgrade.record.end_date}">
+							<div>{xen:phrase expires}: <xen:datetime time="$upgrade.record.end_date" /></div>
+						</xen:if>
+						<xen:if is="{$upgrade.length_unit} AND {$upgrade.recurring}">
+							<a href="{$payPalUrl}?cmd=_subscr-find&amp;alias={xen:urlencode $xenOptions.payPalPrimaryAccount}" class="button">{xen:phrase cancel_subscription}</a>
+						</xen:if>
+						<xen:if is="{$upgrade.can_unsubscribe}">
+							<a href="{xen:link 'account-upgrade/remove-upgrade', $upgrade}" class="button OverlayTrigger">{xen:phrase remove_account_upgrade}</a>
+						</xen:if>
+					</div>
+					
+					<div class="upgradeMain">
+						<h4 class="title">{$upgrade.title}</h4>
+						<xen:if is="{$upgrade.description}">
+							<div class="description">{xen:string nl2br, $upgrade.description}</div>
+						</xen:if>
+					</div>
+				</div>
+			</li>
+		</xen:foreach>
+		</ul>
+	</div>
+</xen:if>
+
+<xen:if is="{$alternative}">
+	<div class="section">
+		<h3 class="subHeading">{xen:phrase unavailable_upgrades}</h3>
+		<ul>
+		<xen:foreach loop="$alternative" value="$upgrade">
+			<li class="primaryContent">
+				<div class="upgrade">					
+					<div class="upgradeForm">
+						<div class="cost">{$upgrade.costPhrase}</div>
+					</div>
+
+					<div class="upgradeMain">
+						<h4 class="title">{$upgrade.title}</h4>
+						<div class="description">
+							{xen:phrase account_upgrade_blocked_by}
+							<strong>{$upgrade.blocked_by}</strong>
+						</div>
+					</div>
+				</div>
+			</li>
+		</xen:foreach>
+		</ul>
+	</div>
+</xen:if>]]></template>
+    <template title="account_upgrades_confirm_remove" version_id="1" version_string="1.0.0"><![CDATA[<xen:title>{xen:phrase remove_account_upgrade}</xen:title>
+
+<form action="{xen:link 'account-upgrade/remove-upgrade', $upgrade}" method="post" class="xenForm formOverlay AutoValidator" data-redirect="on">
+
+	<p>{xen:phrase you_sure_you_want_to_remove_this_account_upgrade}</p>
+	
+	<xen:if is="{$upgrade.length_unit} AND {$upgrade.recurring}">
+		<p><br />{xen:phrase you_should_remove_paypal_subscription_before_removing_account_upgrade}</p>
+		<dl class="ctrlUnit submitUnit">
+			<dt></dt>
+			<dd>
+				<a href="{$payPalUrl}?cmd=_subscr-find&amp;alias={xen:urlencode $xenOptions.payPalPrimaryAccount}" class="button">{xen:phrase cancel_paypal_subscription}</a>
+			</dd>
+		</dl>	
+	</xen:if>
+	
+	<dl class="ctrlUnit submitUnit">
+		<dt></dt>
+		<dd>
+			<input type="submit" value="{xen:phrase remove_account_upgrade}" class="button primary" />
+		</dd>
+	</dl>	
+
+	<input type="hidden" name="_xfToken" value="{$visitor.csrf_token_page}" />
+	<input type="hidden" name="_xfConfirm" value="1" />
+</form>]]></template>
+  </templates>
+  <bb_code_media_sites/>
+</addon>
