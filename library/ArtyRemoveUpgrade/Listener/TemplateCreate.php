@@ -10,8 +10,17 @@ class ArtyRemoveUpgrade_Listener_TemplateCreate
 				if (!empty($params['alternative']))
 				{
 					$templateName = 'account_upgrades_alternative';
+					return;
 				}
-				break;
+				foreach ($params['purchased'] as $upgrade)
+				{
+					if (!empty($upgrade['can_unsubscribe']))
+					{
+						$templateName = 'account_upgrades_alternative';
+						return;
+					}
+				}
+				return;
 		}
 	}
 }
